@@ -1,0 +1,26 @@
+{
+  "name": "employeeTracker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lindsaymorris813/employeeTracker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lindsaymorris813/employeeTracker/issues"
+  },
+  "homepage": "https://github.com/lindsaymorris813/employeeTracker#readme",
+  "dependencies": {
+    "asciiart-logo": "^0.2.6",
+    "inquirer": "^7.3.3",
+    "mysql": "^2.18.1"
+  }
+}

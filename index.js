@@ -4,6 +4,7 @@ var asciiart = require('asciiart-logo');
 var managerArray = [];
 var deptArray = [];
 var roleArray = [];
+var employeeArray = [];
 
 var connection = mysql.createConnection({
     host: 'localhost',
@@ -50,7 +51,7 @@ function init() {
                     addEmployee();
                     break;
                 case 'Update Employee Role':
-                    updateEmployeeRole();
+                    updateRole();
                     break;
                 case 'Add Role':
                     addRole();
@@ -147,13 +148,25 @@ function addEmployee() {
             {
                 name: 'manager_id',
                 type: 'list',
-                message: 'Who is the employees manager',
+                message: "Who is the employee's manager?",
                 choices: managerArray
             }])
         .then(function (response) {
-
+            let empRole = roleArray.indexOf(response.role_id) + 1;
+            let empManager = managerArray.indexOf(response.manager_id) + 1;
+            connection.query("INSERT INTO employee SET ?",
+                {
+                    first_name: response.first_name,
+                    last_name: response.last_name,
+                    role_id: empRole,
+                    manager_id: empManager
+                },
+                function (err) {
+                    if (err) throw err;
+                }
+            ); continueQuestions();
         })
-}
+};
 //View all roles
 function viewRoles() {
     connection.query("SELECT title, salary, department.name FROM role JOIN department ON role.department_id = department.id", function (err, res) {
@@ -174,46 +187,46 @@ function viewDepartments() {
 function addRole() {
     departmentChoices();
     inquirer.prompt([
-            {
-                name: 'title',
-                type: 'input',
-                message: "What is the role's title?"
-            },
-            {
-                name: 'salary',
-                type: 'input',
-                message: "What is the role's salary?"
-            },
-            {
-                name: 'department',
-                type: 'list',
-                message: 'What department does this role belong to?',
-                choices: deptArray
-            }])
+        {
+            name: 'title',
+            type: 'input',
+            message: "What is the role's title?"
+        },
+        {
+            name: 'salary',
+            type: 'input',
+            message: "What is the role's salary?"
+        },
+        {
+            name: 'department',
+            type: 'list',
+            message: 'What department does this role belong to?',
+            choices: deptArray
+        }])
         .then(function (response) {
             //convert dept choice into dept ID
             let deptID;
-            connection.query("SELECT * FROM department", function(err, res) {
+            connection.query("SELECT * FROM department", function (err, res) {
                 if (err) throw err;
-                for (d= 0; d < res.length; d++) {
-                    if (res.name == response.department) {
-                        deptID = res.id;
-                        console.log(deptID);
+                for (d = 0; d < res.length; d++) {
+                    if (res[d].name == response.department) {
+                        deptID = res[d].id;
+                        //Add new role data to role table
+                        connection.query("INSERT INTO role SET ?",
+                            {
+                                title: response.title,
+                                salary: response.salary,
+                                department_id: deptID
+                            },
+                            function (err) {
+                                if (err) throw err;
+                            })
                     }
                 }
             });
-            //Add new role data to role table
-            connection.query("INSERT INTO role SET ?",
-            {
-                title: response.title,
-                salary: response.salary,
-                department_id: deptID
-            },
-                function (err) {
-                if (err) throw err; 
-            })
-    continueQuestions();
-})}
+            continueQuestions();
+        })
+}
 //pull all roles from role table
 function roleChoices() {
     connection.query("SELECT * FROM role", function (err, res) {
@@ -240,7 +253,17 @@ function departmentChoices() {
             deptArray.push(res[i].name)
         }
     }); return deptArray;
-};
+}
+//pull all employees from employee table
+function employeeChoices() {
+    connection.query("Select * FROM employee", function (err, res) {
+        if (err) throw err;
+        for (let i = 0; i < res.length; i++) {
+            let addName = (res[i].first_name + " " + res[i].last_name)
+            employeeArray.push(addName);
+        }
+    }); return employeeArray;
+}
 //Continue wiht more queries/adds or exit CLI
 function continueQuestions() {
     inquirer
@@ -282,10 +305,22 @@ function addDepartment() {
 }
 //updata an employees role
 function updateRole() {
+    employeeChoices();
     inquirer
-    .prompt([
-        {
-
-        }
-    ])
+        .prompt([
+            {
+                name: 'chooseEmployee',
+                type: 'list',
+                message: 'Which employee would you like to update?',
+                choices: employeeArray
+            },
+            {
+                name: 'newRole',
+                type: 'list',
+                message: "What is the employee's new role?",
+                choices: roleArray
+            }])
+            .then(function (response) {
+                let empChange = 
+            })
 }

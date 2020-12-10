@@ -1,6 +1,5 @@
 var mysql = require('mysql');
 var inquirer = require('inquirer');
-var asciiart = require('asciiart-logo');
 var managerArray = [];
 var deptArray = [];
 var roleArray = [];
@@ -167,6 +166,40 @@ function addEmployee() {
             ); continueQuestions();
         })
 };
+//update an employees role
+function updateRole() {
+    roleChoices();
+    employeeChoices();
+    inquirer
+        .prompt([
+            {
+                name: 'chooseEmp',
+                type: 'list',
+                message: 'Which employee would you like to update?',
+                choices: employeeArray
+            },
+            {
+                name: 'newRole',
+                type: 'list',
+                message: "What is the employee's new role?",
+                choices: roleArray
+            }])
+            .then(function (response) {
+                let chooseEmp = employeeArray.indexOf(response.chooseEmployee) + 1;
+                let newRole = roleArray.indexOf(response.newRole) + 1;
+                connection.query("UPDATE employee SET WHERE?",
+                {
+                    id: chooseEmp
+                },
+                {
+                    role_id: newRole,
+                },
+                function (err) {
+                    if (err) throw err;
+                }
+            ); continueQuestions();
+            })
+};
 //View all roles
 function viewRoles() {
     connection.query("SELECT title, salary, department.name FROM role JOIN department ON role.department_id = department.id", function (err, res) {
@@ -174,7 +207,7 @@ function viewRoles() {
         console.table(res);
         continueQuestions();
     })
-}
+};
 //View all Departments
 function viewDepartments() {
     connection.query("SELECT * FROM department", function (err, res) {
@@ -182,7 +215,7 @@ function viewDepartments() {
         console.table(res);
         continueQuestions();
     })
-}
+};
 //Add a role
 function addRole() {
     departmentChoices();
@@ -226,7 +259,7 @@ function addRole() {
             });
             continueQuestions();
         })
-}
+};
 //pull all roles from role table
 function roleChoices() {
     connection.query("SELECT * FROM role", function (err, res) {
@@ -235,7 +268,7 @@ function roleChoices() {
             roleArray.push(res[i].title);
         }
     }); return roleArray;
-}
+};
 //pull all managers from employee table
 function managerChoices() {
     connection.query("SELECT * FROM employee JOIN role ON employee.role_id = role.id WHERE manager = 1", function (err, res) {
@@ -244,7 +277,7 @@ function managerChoices() {
             managerArray.push(res[i].first_name + " " + res[i].last_name);
         }
     }); return managerArray;
-}
+};
 //pull all departments from dept table
 function departmentChoices() {
     connection.query("SELECT * FROM department", function (err, res) {
@@ -253,16 +286,17 @@ function departmentChoices() {
             deptArray.push(res[i].name)
         }
     }); return deptArray;
-}
+};
 //pull all employees from employee table
 function employeeChoices() {
-    connection.query("Select * FROM employee", function (err, res) {
-        if (err) throw err;
-        for (let i = 0; i < res.length; i++) {
-            let addName = (res[i].first_name + " " + res[i].last_name)
-            employeeArray.push(addName);
-        }
-    }); return employeeArray;
+    function managerChoices() {
+        connection.query("SELECT * FROM employee", function (err, res) {
+            if (err) throw err;
+            for (let i = 0; i < res.length; i++) {
+                employeeArray.push(res[i].first_name + " " + res[i].last_name);
+            }
+        }); return employeeArray;
+    };
 }
 //Continue wiht more queries/adds or exit CLI
 function continueQuestions() {
@@ -285,7 +319,7 @@ function continueQuestions() {
                 connection.end();
             }
         })
-}
+};
 //add new dept to dept table
 function addDepartment() {
     inquirer
@@ -302,25 +336,4 @@ function addDepartment() {
                 console.log('Department added');
             })
         })
-}
-//updata an employees role
-function updateRole() {
-    employeeChoices();
-    inquirer
-        .prompt([
-            {
-                name: 'chooseEmployee',
-                type: 'list',
-                message: 'Which employee would you like to update?',
-                choices: employeeArray
-            },
-            {
-                name: 'newRole',
-                type: 'list',
-                message: "What is the employee's new role?",
-                choices: roleArray
-            }])
-            .then(function (response) {
-                let empChange = 
-            })
-}
+};

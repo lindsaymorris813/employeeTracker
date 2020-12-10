@@ -1,10 +1,9 @@
 var mysql = require('mysql');
 var inquirer = require('inquirer');
 var managerArray = [];
-var deptArray = [];
 var roleArray = [];
 var employeeArray = [];
-
+var deptArray = [];
 var connection = mysql.createConnection({
     host: 'localhost',
     port: 3306,
@@ -80,44 +79,30 @@ function viewAllEmployees() {
 }
 //View Employees by Department
 function viewByDept() {
-    deptChoices();
-    console.log(2);
-    console.log(deptArray);
-    inquirer
-        .prompt([
-            {
-            name: 'deptQuery',
-            type: 'list',
-            message: 'You would like to see the employees of which department?',
-            choices: deptArray
-        }])
-        .then(function (response) {
-            let queryDept;
-            switch (response.deptQuery) {
-                case 'C-level':
-                    queryDept = 6;
-                    break;
-                case 'Legal':
-                    queryDept = 1;
-                    break;
-                case 'Accounting':
-                    queryDept = 2;
-                    break;
-                case 'Project Management':
-                    queryDept = 3;
-                    break;
-                case 'Software':
-                    queryDept = 4;
-                    break;
-                case 'Engineering':
-                    queryDept = 5;
-            }
-            connection.query("SELECT * FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id WHERE department.id =?", (queryDept), function (err, res) {
-                if (err) throw err;
-                console.table(res)
-                continueQuestions();
+    connection.query("SELECT * FROM department", function (err, res) {
+        if (err) throw err;
+        inquirer
+            .prompt([
+                {
+                    name: 'deptQuery',
+                    type: 'list',
+                    message: 'You would like to see the employees of which department?',
+                    choices: () => {
+                        for (var i = 0; i < res.length; i++) {
+                            deptArray.push(res[i].name);
+                        } return deptArray;
+                    }
+                }])
+            .then(function (response) {
+                let queryDept = deptArray.indexOf(response.deptQuery) + 1;
+                console.log(queryDept);
+                connection.query("SELECT * FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id WHERE department.id =?", (queryDept), function (err, res) {
+                    if (err) throw err;
+                    console.table(res)
+                    continueQuestions();
+                })
             })
-        })
+    })
 }
 //Add an Employee
 function addEmployee() {
@@ -166,36 +151,39 @@ function addEmployee() {
 //update an employees role
 function updateRole() {
     roleChoices();
-    employeeChoices();
-    inquirer
-        .prompt([
-            {
-                name: 'chooseEmp',
-                type: 'list',
-                message: 'Which employee would you like to update?',
-                choices: employeeArray
-            },
-            {
-                name: 'newRole',
-                type: 'list',
-                message: "What is the employee's new role?",
-                choices: roleArray
-            }])
+    connection.query("SELECT * FROM employee", function (err, res) {
+        if (err) throw err;
+        inquirer
+            .prompt([
+                {
+                    name: 'chooseEmp',
+                    type: 'list',
+                    message: 'Which employee would you like to update?',
+                    choices: () => {
+                        for (let i = 0; i < res.length; i++) {
+                            employeeArray.push(res[i].first_name + " " + res[i].last_name);
+                        } return employeeArray;
+                    }
+                },
+                {
+                    name: 'newRole',
+                    type: 'list',
+                    message: "What is the employee's new role?",
+                    choices: roleArray
+                }])
             .then(function (response) {
-                let chooseEmp = employeeArray.indexOf(response.chooseEmployee) + 1;
+                let chooseEmp = employeeArray.indexOf(response.chooseEmp) + 1;
                 let newRole = roleArray.indexOf(response.newRole) + 1;
-                connection.query("UPDATE employee SET WHERE?",
-                {
-                    id: chooseEmp
-                },
-                {
-                    role_id: newRole,
-                },
-                function (err) {
-                    if (err) throw err;
-                }
-            ); continueQuestions();
+                connection.query("UPDATE employee SET role_id = ? WHERE id = ?",
+                    [
+                        newRole, chooseEmp
+                    ],
+                    function (err) {
+                        if (err) throw err;
+                    }
+                ); continueQuestions();
             })
+    })
 };
 //View all roles
 function viewRoles() {
@@ -275,23 +263,14 @@ function managerChoices() {
         }
     }); return managerArray;
 };
-//pull all departments from dept table
-function deptChoices() {
-    connection.query("SELECT * FROM department", function (err, res) {
-        if (err) throw err;
-        for (let i = 0; i < res.length; i++) {
-            deptArray.push(res[i].name);
-        }  
-    }); return deptArray;
-};
 //pull all employees from employee table
 function employeeChoices() {
-        connection.query("SELECT * FROM employee", function (err, res) {
-            if (err) throw err;
-            for (let i = 0; i < res.length; i++) {
-                employeeArray.push(res[i].first_name + " " + res[i].last_name);
-            }
-        }); return employeeArray;
+    connection.query("SELECT * FROM employee", function (err, res) {
+        if (err) throw err;
+        for (let i = 0; i < res.length; i++) {
+            employeeArray.push(res[i].first_name + " " + res[i].last_name);
+        }
+    }); return employeeArray;
 };
 //Continue wiht more queries/adds or exit CLI
 function continueQuestions() {
@@ -331,4 +310,5 @@ function addDepartment() {
                 console.log('Department added');
             })
         })
+    continueQuestions();
 };

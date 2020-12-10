@@ -13,11 +13,13 @@ var connection = mysql.createConnection({
     database: 'employeesDB'
 });
 
+//connect to database
 connection.connect(function (err) {
     if (err) throw err;
     init();
 });
 
+//initialize CLI
 function init() {
     inquirer
         .prompt([{
@@ -67,7 +69,7 @@ function init() {
             }
         });
 }
-
+//view All employees
 function viewAllEmployees() {
     connection.query("SELECT * FROM employee", function (err, res) {
         if (err) throw err;
@@ -76,7 +78,7 @@ function viewAllEmployees() {
         continueQuestions();
     });
 }
-
+//View Employees by Department
 function viewByDept() {
     inquirer
         .prompt({
@@ -120,8 +122,10 @@ function viewByDept() {
             })
         })
 }
-
+//Add an Employee
 function addEmployee() {
+    roleChoices();
+    managerChoices();
     inquirer
         .prompt([
             {
@@ -138,41 +142,38 @@ function addEmployee() {
                 name: 'role_id',
                 type: 'list',
                 message: "What is the employee's role?",
-                choices: [
-                    roleChoices()
-                ]
+                choices: roleArray
             },
             {
                 name: 'manager_id',
                 type: 'list',
                 message: 'Who is the employees manager',
-                choices: [
-                    managerChoices()
-                ]
+                choices: managerArray
             }])
         .then(function (response) {
 
         })
 }
-
+//View all roles
 function viewRoles() {
     connection.query("SELECT title, salary, department.name FROM role JOIN department ON role.department_id = department.id", function (err, res) {
         if (err) throw err;
         console.table(res);
+        continueQuestions();
     })
 }
-
+//View all Departments
 function viewDepartments() {
     connection.query("SELECT * FROM department", function (err, res) {
         if (err) throw err;
         console.table(res);
+        continueQuestions();
     })
 }
-
+//Add a role
 function addRole() {
     departmentChoices();
-    inquirer
-        .prompt([
+    inquirer.prompt([
             {
                 name: 'title',
                 type: 'input',
@@ -190,35 +191,39 @@ function addRole() {
                 choices: deptArray
             }])
         .then(function (response) {
-            for (var d = 0; d < deptArray.length; d++) {
-                if (deptArray[d].name === response.department) {
-                    var deptID = deptArray[d];
+            //convert dept choice into dept ID
+            let deptID;
+            connection.query("SELECT * FROM department", function(err, res) {
+                if (err) throw err;
+                for (d= 0; d < res.length; d++) {
+                    if (res.name == response.department) {
+                        deptID = res.id;
+                        console.log(deptID);
+                    }
                 }
-            }
+            });
+            //Add new role data to role table
             connection.query("INSERT INTO role SET ?",
-                {
-                    title: response.title,
-                    salary: response.salary,
-                    department: deptID
+            {
+                title: response.title,
+                salary: response.salary,
+                department_id: deptID
             },
                 function (err) {
-                    if (err) throw err;
-                    console.log('Role added');
-                })
-        })
-}
-
+                if (err) throw err; 
+            })
+    continueQuestions();
+})}
+//pull all roles from role table
 function roleChoices() {
     connection.query("SELECT * FROM role", function (err, res) {
         if (err) throw err;
-        var roleArray = [];
-        for (var i = 0; i < res.length; i++) {
+        for (let i = 0; i < res.length; i++) {
             roleArray.push(res[i].title);
         }
-    });
-    return roleArray;
+    }); return roleArray;
 }
-
+//pull all managers from employee table
 function managerChoices() {
     connection.query("SELECT * FROM employee JOIN role ON employee.role_id = role.id WHERE manager = 1", function (err, res) {
         if (err) throw err;
@@ -227,7 +232,7 @@ function managerChoices() {
         }
     }); return managerArray;
 }
-
+//pull all departments from dept table
 function departmentChoices() {
     connection.query("SELECT * FROM department", function (err, res) {
         if (err) throw err;
@@ -236,7 +241,7 @@ function departmentChoices() {
         }
     }); return deptArray;
 };
-
+//Continue wiht more queries/adds or exit CLI
 function continueQuestions() {
     inquirer
         .prompt([
@@ -258,7 +263,7 @@ function continueQuestions() {
             }
         })
 }
-
+//add new dept to dept table
 function addDepartment() {
     inquirer
         .prompt([
@@ -274,4 +279,13 @@ function addDepartment() {
                 console.log('Department added');
             })
         })
+}
+//updata an employees role
+function updateRole() {
+    inquirer
+    .prompt([
+        {
+
+        }
+    ])
 }

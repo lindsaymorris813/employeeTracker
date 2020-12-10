@@ -80,20 +80,17 @@ function viewAllEmployees() {
 }
 //View Employees by Department
 function viewByDept() {
+    deptChoices();
+    console.log(2);
+    console.log(deptArray);
     inquirer
-        .prompt({
+        .prompt([
+            {
             name: 'deptQuery',
             type: 'list',
             message: 'You would like to see the employees of which department?',
-            choices: [
-                'C-level',
-                'Legal',
-                'Accounting',
-                'Project Management',
-                'Software',
-                'Engineering'
-            ]
-        })
+            choices: deptArray
+        }])
         .then(function (response) {
             let queryDept;
             switch (response.deptQuery) {
@@ -279,25 +276,23 @@ function managerChoices() {
     }); return managerArray;
 };
 //pull all departments from dept table
-function departmentChoices() {
+function deptChoices() {
     connection.query("SELECT * FROM department", function (err, res) {
         if (err) throw err;
         for (let i = 0; i < res.length; i++) {
-            deptArray.push(res[i].name)
-        }
+            deptArray.push(res[i].name);
+        }  
     }); return deptArray;
 };
 //pull all employees from employee table
 function employeeChoices() {
-    function managerChoices() {
         connection.query("SELECT * FROM employee", function (err, res) {
             if (err) throw err;
             for (let i = 0; i < res.length; i++) {
                 employeeArray.push(res[i].first_name + " " + res[i].last_name);
             }
         }); return employeeArray;
-    };
-}
+};
 //Continue wiht more queries/adds or exit CLI
 function continueQuestions() {
     inquirer

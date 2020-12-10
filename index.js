@@ -3,6 +3,7 @@ var inquirer = require('inquirer');
 var asciiart = require('asciiart-logo');
 roleArray = [];
 managerArray = [];
+deptArray = [];
 
 var connection = mysql.createConnection({
     host: 'localhost',
@@ -96,19 +97,16 @@ function viewByDept() {
             queryDept = "SELECT * FROM employee WHERE deparment_id = 6";
             break;
             case 'Legal':
-            let queryDept = "SELECT * FROM employee WHERE deparment_id = 1";
+            queryDept = "SELECT * FROM employee WHERE deparment_id = 1";
             break;
             case 'Accounting':
-            let queryDept = "SELECT * FROM employee WHERE deparment_id = 2";
-            break;
-            case 'Project Management':
-            let queryDept = "SELECT * FROM employee WHERE deparment_id = 3";
+            queryDept = "SELECT * FROM employee WHERE deparment_id = 3";
             break;
             case 'Software':
-            let queryDept = "SELECT * FROM employee WHERE deparment_id = 4";
+            queryDept = "SELECT * FROM employee WHERE deparment_id = 4";
             break;
             case 'Engineering':
-            let queryDept = "SELECT * FROM employee WHERE deparment_id = 5";
+            queryDept = "SELECT * FROM employee WHERE deparment_id = 5";
         }
         connection.query(queryDept, function(err, res) {
             if (err) throw err;
@@ -171,10 +169,18 @@ function addRole() {
         message: "What is the role's title?"
     },
     {
+        name: 'title',
+        type: 'number',
+        message: "What is the role's salary?"
+    },
+    {
         name: 'department',
-        type: 
+        type: 'list',
+        message: 'What department does this role belong to?',
+        choices: [
+            departmentChoices()
+        ]
     })
-
 }
 
 function roleChoices () {
@@ -196,5 +202,10 @@ function managerChoices() {
 }
 
 function departmentChoices() {
-    connection.query("SELECT * FROM department")
+    connection.query("SELECT * FROM department", function (err, res) {
+        if (err) throw err;
+        for (let i = 0; i < res.length; i++) {
+            deptArray.push(res[i].name)
+        }
+    }); return deptArray;
 }

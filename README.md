@@ -27,7 +27,7 @@ In this homework assignment, your challenge is to architect and build a solution
 ## INSTALLATION
 
 node express
-node uuid
+node mysql
 
 ## USAGE
 
